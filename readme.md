@@ -13,6 +13,12 @@ purchase and manage subscriptions through Telegram with multiple payment system 
 
 - `/sync` - Poll users from remnawave and synchronize them with the database. Remove all users which not present in
   remnawave.
+- `/stats` - Show number of active subscriptions
+- `/find <telegram_id>` - Find user info and subscription status
+- `/addpromo <code> <type> <value> <expire YYYY-MM-DD> [usage_limit]` - Add promo code
+- `/listpromos` - List all promo codes
+- `/broadcast <text>` - Send message to all users
+- `/extend <telegram_id> <days>` - Manually extend user's subscription
 
 ## Features
 
