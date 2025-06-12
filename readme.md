@@ -124,7 +124,13 @@ git clone https://github.com/Jolymmiels/remnawave-telegram-shop && cd remnawave-
 mv .env.sample .env
 ```
 
-3. Run the bot:
+3. Build the Docker image locally (required on ARM64):
+
+   ```bash
+   docker compose build
+   ```
+
+4. Run the bot:
 
    ```bash
    docker compose up -d
