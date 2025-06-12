@@ -1,4 +1,4 @@
-# Remnawave Telegram Shop
+# Remnawave Telegram Shop (copypasta) no ovner
 
 A Telegram bot for selling subscriptions with integration to Remnawave (https://remna.st/). This service allows users to
 purchase and manage subscriptions through Telegram with multiple payment system options.
