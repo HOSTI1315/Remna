@@ -155,7 +155,7 @@ func TelegramToken() string {
 func RemnawaveUrl() string {
 	return conf.remnawaveUrl
 }
-func DadaBaseUrl() string {
+func DatabaseURL() string {
 	return conf.databaseURL
 }
 func RemnawaveToken() string {
@@ -338,7 +338,7 @@ func InitConfig() {
 
 	conf.databaseURL = os.Getenv("DATABASE_URL")
 	if conf.databaseURL == "" {
-		panic("DADA_BASE_URL .env variable not set")
+		panic("DATABASE_URL .env variable not set")
 	}
 
 	conf.isTelegramStarsEnabled = os.Getenv("TELEGRAM_STARS_ENABLED") == "true"
