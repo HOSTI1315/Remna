@@ -4,10 +4,20 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from ..keyboards.subscription import plan_keyboard, payment_keyboard
 from ..services.remna_api import RemnaAPI
+from ..services.cryptopay_api import CryptoPayAPI
 from ..services.codes import generate_code
 from ..models import database
+import os
 
 router = Router()
+
+# Subscription prices from environment
+PRICE_MAP = {
+    1: int(os.getenv('PRICE_1', '0')),
+    3: int(os.getenv('PRICE_3', '0')),
+    6: int(os.getenv('PRICE_6', '0')),
+    12: int(os.getenv('PRICE_12', '0')),
+}
 
 class BuyStates(StatesGroup):
     choosing_plan = State()
@@ -51,12 +61,18 @@ async def payment_selected(call: CallbackQuery, state: FSMContext):
             await db.commit()
         await call.message.edit_text(f'Вы приобрели гифт на {months} месяцев\nВаш код:\n`{code}`', parse_mode='Markdown')
     else:
-        api = RemnaAPI()
-        config = await api.create_profile(call.from_user.id, days=30*months)
-        await call.message.edit_text(f'Подписка активирована на {months} месяцев\n{config}')
-        async with database.get_db() as db:
-            await db.execute("INSERT INTO subscriptions(user_id, start_date, end_date, profile) VALUES((SELECT id FROM users WHERE telegram_id=?), date('now'), date('now','+{months} month'), ?)", (call.from_user.id, config))
-            await db.commit()
+        if call.data == 'pay_crypto' and os.getenv('CRYPTO_PAY_ENABLED', 'false').lower() == 'true':
+            price = PRICE_MAP.get(months, 0)
+            api = CryptoPayAPI()
+            pay_url = await api.create_invoice(str(price), f'Subscription for {months} month')
+            await call.message.edit_text(f'Оплатите заказ через CryptoBot:\n{pay_url}')
+        else:
+            api = RemnaAPI()
+            config = await api.create_profile(call.from_user.id, days=30*months)
+            await call.message.edit_text(f'Подписка активирована на {months} месяцев\n{config}')
+            async with database.get_db() as db:
+                await db.execute("INSERT INTO subscriptions(user_id, start_date, end_date, profile) VALUES((SELECT id FROM users WHERE telegram_id=?), date('now'), date('now','+{months} month'), ?)", (call.from_user.id, config))
+                await db.commit()
     await state.clear()
 
 @router.callback_query(BuyStates.choosing_payment, F.data == 'back_plan')
