@@ -13,6 +13,7 @@ services:
 
   db:
     image: postgres:17
+    platform: linux/arm64
     container_name: 'remnawave-telegram-shop-db'
     hostname: remnawave-telegram-shop-db
     restart: always
