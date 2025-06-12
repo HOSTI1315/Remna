@@ -130,6 +130,21 @@ mv .env.sample .env
    docker compose up -d
    ```
 
+## Build for ARM64
+
+To build the Docker image for ARM64 use the following command:
+
+```bash
+docker buildx build --platform linux/arm64 --build-arg TARGETOS=linux --build-arg TARGETARCH=arm64 -t remnawave-telegram-shop:arm64 .
+```
+
+After building, start the containers as usual:
+
+```bash
+docker compose up -d
+```
+
+
 ## How to change bot messages
 
 Go to folder translations inside bot folder and change needed language.
