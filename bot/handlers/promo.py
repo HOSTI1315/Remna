@@ -22,6 +22,57 @@ async def activate_promo(call: CallbackQuery, state: FSMContext):
 async def process_promo(message: Message, state: FSMContext):
     code = message.text.strip()
     async with database.get_db() as db:
+        # Check if code is gift code first
+        gift_row = await db.execute_fetchone(
+            "SELECT id, months, used_by FROM gift_codes WHERE code=?",
+            (code,),
+        )
+        if gift_row:
+            gift_id, months, used_by = gift_row
+            if used_by:
+                await message.answer('Промокод больше недоступен')
+                await state.clear()
+                return
+            user_row = await db.execute_fetchone(
+                "SELECT id FROM users WHERE telegram_id=?", (message.from_user.id,)
+            )
+            if not user_row:
+                await message.answer('Нет данных пользователя')
+                await state.clear()
+                return
+            user_id = user_row[0]
+            sub = await db.execute_fetchone(
+                "SELECT id, end_date FROM subscriptions WHERE user_id=? AND active=1 ORDER BY id DESC LIMIT 1",
+                (user_id,),
+            )
+            if sub:
+                end = datetime.fromisoformat(sub[1])
+                if end < datetime.utcnow():
+                    end = datetime.utcnow()
+                new_end = end + timedelta(days=30 * months)
+                await db.execute(
+                    "UPDATE subscriptions SET end_date=? WHERE id=?",
+                    (new_end.date().isoformat(), sub[0]),
+                )
+            else:
+                api = RemnaAPI()
+                config = await api.create_profile(message.from_user.id, days=30 * months)
+                await db.execute(
+                    "INSERT INTO subscriptions(user_id, start_date, end_date, profile) VALUES(?, date('now'), ?, ?)",
+                    (user_id, (datetime.utcnow() + timedelta(days=30 * months)).date().isoformat(), config),
+                )
+            await db.execute(
+                "UPDATE gift_codes SET used_by=?, used_at=? WHERE id=?",
+                (user_id, datetime.utcnow().isoformat(), gift_id),
+            )
+            await db.commit()
+            await message.answer(
+                f'Подписка продлена до {(datetime.utcnow() + timedelta(days=30*months)).date().isoformat()}',
+                reply_markup=main_menu(),
+            )
+            await state.clear()
+            return
+
         row = await db.execute_fetchone(
             "SELECT id, type, value, expire_at, usage_limit, used_count FROM promo_codes WHERE code=?",
             (code,),
