@@ -14,7 +14,7 @@ RUN apk update && apk add --no-cache ca-certificates tzdata
 RUN update-ca-certificates
 
 ARG TARGETOS
-ARG TARGETOS
+ARG TARGETARCH
 ARG VERSION
 
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
@@ -28,7 +28,7 @@ ARG COMMIT
 
 LABEL org.opencontainers.image.version="${VERSION}"
 LABEL org.opencontainers.image.revision="${COMMIT}"
-LABEL org.opencontainers.image.source="https://github.com/${GITHUB_REPOSITORY}"
+LABEL org.opencontainers.image.source="https://github.com/Jolymmiles/remnawave-telegram-shop"
 LABEL org.opencontainers.image.description="Remnawave Telegram Shop Bot"
 LABEL org.opencontainers.image.licenses="MIT"
 
